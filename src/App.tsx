@@ -182,7 +182,7 @@ export default function App() {
                     onClick={() => { setPlaying(false); setT(Math.max(0, fr - FPS)) }}>
                     <b>{coverageLabel(c)}</b>
                     <span className="muted"> · {cur.n[ss]} screen for {cur.n[hs]}, {act === 'stay' ? 'screener holds' : act === 'roll' ? 'rolls' : 'pops'}</span>
-                    <span className="num muted"> · {(fr / FPS).toFixed(1)}s{e0 != null && e2 != null && ` · ${e2 - e0 >= 0 ? '+' : '−'}${Math.abs(e2 - e0).toFixed(2)} expected pts over 2 s`}</span>
+                    <span className="num muted"> · {(fr / FPS).toFixed(1)}s{e0 != null && e2 != null && (d => ` · ${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(2)} expected pts over 2 s`)(Math.round((e2 - e0) * 100) / 100 || 0)}</span>
                   </button>
                 )
               })}

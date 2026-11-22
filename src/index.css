@@ -227,3 +227,11 @@ tr.on { background: var(--accent-subtle); }
 .hit-text { display: flex; flex-direction: column; gap: 1px; font-size: 12.5px; min-width: 0; }
 .hit-out { color: var(--text-secondary); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .panel-foot { margin: 0; font-size: 12px; color: var(--text-muted); }
+
+.poss-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 11px; line-height: 1; padding: 3px 6px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-secondary); }
+.tag.on { border-color: var(--accent); color: var(--text-primary); }
+.screens { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 12px; }
+.screen { font: inherit; font-size: 13px; text-align: left; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-primary); cursor: pointer; }
+.screen:hover { background: var(--surface-hover, color-mix(in srgb, var(--text-primary) 6%, transparent)); }
+.screen.on { border-color: var(--accent); }

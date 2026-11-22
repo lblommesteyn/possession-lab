@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { SearchField } from '@/components/arc/search-field/search-field'
 import SegmentedControl from '@/components/arc/segmented-control/segmented-control'
 import { Switch } from '@/components/arc/switch/switch'
+import { Select } from '@/components/arc/select/select'
 import type { Index, Possession } from './data'
-import { loadIndex, loadPossession, fmtClock, fmtDate, FPS, outcomeText } from './data'
+import { loadIndex, loadPossession, fmtClock, fmtDate, FPS, outcomeText, COVERAGE, coverageLabel } from './data'
 import { Court, frameAt } from './Court'
 import { EpvChart } from './EpvChart'
 import { Similar } from './Similar'
@@ -26,6 +27,7 @@ export default function App() {
   const [err, setErr] = useState<string | null>(null)
   const [filter, setFilter] = useState<Filter>('cha-off')
   const [q, setQ] = useState('')
+  const [cov, setCov] = useState('any')
   const [shown, setShown] = useState(80)
   const [cur, setCur] = useState<Possession | null>(null)
   const [mirrored, setMirrored] = useState(false)
@@ -88,9 +90,10 @@ export default function App() {
     const qq = fold(q.trim())
     return idx.possessions.filter(p =>
       (filter === 'league' ? true : filter === 'cha-off' ? p.off === 'CHA' : p.de === 'CHA') &&
+      (cov === 'any' || (cov === 'none' ? !p.pc?.length : cov === 'some' ? !!p.pc?.length : !!p.pc?.includes(cov))) &&
       (qq.length < 2 || p.n.some(n => fold(n).includes(qq)) || fold(p.outcome).includes(qq) || fold(`${p.off} ${p.de}`).includes(qq)))
-  }, [idx, filter, q])
-  useEffect(() => setShown(80), [filter, q])
+  }, [idx, filter, q, cov])
+  useEffect(() => setShown(80), [filter, q, cov])
 
   if (err) return <main className="shell"><p className="error">{err}. Reload the page to try again.</p></main>
   if (!idx || !cur) return <main className="shell"><p className="muted">Loading possessions…</p></main>
@@ -118,6 +121,9 @@ export default function App() {
           <SegmentedControl label="Show" value={filter} onValueChange={v => setFilter(v as Filter)}
             options={[{ value: 'cha-off', label: 'CHA offense' }, { value: 'cha-def', label: 'CHA defense' }, { value: 'league', label: 'All' }]} />
           <SearchField label="Filter" placeholder="Player, team or result" value={q} onValueChange={setQ} />
+          <Select label="Ball screen coverage" value={cov} onValueChange={setCov}
+            options={[{ value: 'any', label: 'Any possession' }, { value: 'some', label: 'Any ball screen' },
+              ...COVERAGE.map(c => ({ value: c.value, label: c.label })), { value: 'none', label: 'No ball screen' }]} />
           <p className="muted small num">{list.length.toLocaleString()} possessions</p>
           <ul>
             {list.slice(0, shown).map(p => (
@@ -126,6 +132,7 @@ export default function App() {
                   <span className="poss-top"><b>{p.off}</b> <span className="muted">vs</span> <b>{p.de}</b>
                     <span className="muted num poss-when">{fmtDate(p.date)} · {fmtClock(p.clock, p.per)}</span></span>
                   <span className="poss-out">{outcomeText(p.outcome)}</span>
+                  {!!p.pc?.length && <span className="poss-tags">{p.pc.map(c => <span key={c} className={c === cov ? 'tag on' : 'tag'}>{coverageLabel(c)}</span>)}</span>}
                   <span className="poss-pts num">{p.pts ?? '–'} pts{p.e0 != null && <span className="muted"> · {p.e0.toFixed(2)} expected at start</span>}</span>
                 </button>
               </li>
@@ -164,6 +171,23 @@ export default function App() {
               options={[{ value: '0.5', label: '½×' }, { value: '1', label: '1×' }, { value: '2', label: '2×' }]} />
             <Switch label="Trails" checked={trails} onCheckedChange={setTrails} />
           </div>
+          {!!cur.pr?.length && (
+            <div className="screens" aria-label="Ball screens">
+              <span className="muted small">Ball screens</span>
+              {cur.pr.map(([fr, c, act, hs, ss], i) => {
+                const live = t >= fr - 2 && t <= fr + 2 * FPS
+                const e0 = cur.e[fr], e2 = cur.e[Math.min(cur.e.length - 1, fr + 2 * FPS)]
+                return (
+                  <button key={i} className={live ? 'screen on' : 'screen'} title={COVERAGE.find(o => o.value === c)?.help}
+                    onClick={() => { setPlaying(false); setT(Math.max(0, fr - FPS)) }}>
+                    <b>{coverageLabel(c)}</b>
+                    <span className="muted"> · {cur.n[ss]} screen for {cur.n[hs]}, {act === 'stay' ? 'screener holds' : act === 'roll' ? 'rolls' : 'pops'}</span>
+                    <span className="num muted"> · {(fr / FPS).toFixed(1)}s{e0 != null && e2 != null && ` · ${e2 - e0 >= 0 ? '+' : '−'}${Math.abs(e2 - e0).toFixed(2)} expected pts over 2 s`}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
           {idx.epv && <EpvChart p={cur} t={t} onSeek={v => { setPlaying(false); setT(v) }} />}
           <p className="chart-note">Expected points: what an average NBA possession from this exact moment scores, predicted from the last two seconds of movement by all ten players and the ball. Dots mark passes; the biggest swings are labelled. Space plays and pauses, arrow keys step.</p>
         </section>
@@ -175,6 +199,7 @@ export default function App() {
         <h2>Method</h2>
         <p><b>Data.</b> 5 Hz optical tracking from the 2025-26 season, half-court frames only, with the offense always attacking the rim at the top. The library holds every Charlotte half-court possession of five seconds or more in the archive plus a random sample from the rest of the league.</p>
         <p><b>Expected points.</b> A transformer that reads the last two seconds of all ten players' and the ball's movement (plus shot clock, game clock and score), starting from a movement model pre-trained to redraw hidden players' paths. Trained on possession points with each shot's make-or-miss luck replaced by its expected value. Every possession shown was scored by a model that never saw its game.</p>
+        <p><b>Ball screens.</b> A screen is a teammate within 4.5 ft of the ball handler's defender and 8 ft of the handler, standing nearly still while the handler moves, at least 17 ft from the rim. Who guards whom comes from a hidden-Markov assignment model. Coverage is read from the screener's defender over the next 1.6 s: blitz (both defenders on the ball), switch (the defenders trade men), drop (he stays 8 ft or more below the ball and never gets within 7 ft), show (he gets within 7 ft at the level of the screen), soft (in between). These are rules, not hand-checked labels; treat them as a search aid. Detected in 644 games: about 43 per game, roughly half of them drop.</p>
         <p><b>Play search.</b> Each second of every possession is embedded by the pre-trained movement model to shortlist 60 candidates, which are then ranked by actual distance: attackers matched to attackers and defenders to defenders, one to one, to minimise the average gap over the two seconds, plus the ball. Mirror images (same play run on the other side) count.</p>
       </footer>
     </main>

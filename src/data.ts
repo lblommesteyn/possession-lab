@@ -18,9 +18,24 @@ export interface PossMeta {
   /** EPV at the first half-court frame */
   e0: number | null
   ns: number
+  /** ball-screen coverages seen in the possession */
+  pc?: string[]
 }
 
-export interface Possession extends Omit<PossMeta, 'e0' | 'ns'> {
+export type Coverage = 'drop' | 'switch' | 'show' | 'blitz' | 'soft'
+/** [screen frame, coverage, screener action (roll/pop/stay), handler slot, screener slot] */
+export type Screen = [number, Coverage, 'roll' | 'pop' | 'stay', number, number]
+
+export const COVERAGE: { value: Coverage; label: string; help: string }[] = [
+  { value: 'drop', label: 'Drop', help: "The screener's defender sinks toward the rim and never challenges the ball" },
+  { value: 'switch', label: 'Switch', help: 'The two defenders trade men' },
+  { value: 'show', label: 'Show / hedge', help: "The screener's defender steps up level with the screen to slow the ball, then recovers" },
+  { value: 'blitz', label: 'Blitz', help: 'Both defenders go to the ball handler' },
+  { value: 'soft', label: 'Soft', help: 'In between: the big engages from below the screen or late' },
+]
+export const coverageLabel = (c: string) => COVERAGE.find(o => o.value === c)?.label ?? c
+
+export interface Possession extends Omit<PossMeta, 'e0' | 'ns' | 'pc'> {
   /** 5 Hz frames: [x1, y1, ... x10, y10, ballx, bally]; offense attacks +x, rim at (hoop_x, 0) */
   f: number[][]
   /** ball holder per frame: 0-9 (index into n) or -1 */
@@ -31,6 +46,8 @@ export interface Possession extends Omit<PossMeta, 'e0' | 'ns'> {
   shot: number | null
   /** play search: window end frame -> [possession id, frame, avg feet apart, mirrored 0/1] x 8 */
   w: Record<string, [number, number, number, number][]>
+  /** ball screens detected in the possession */
+  pr?: Screen[]
 }
 
 export interface Index { possessions: PossMeta[]; hoop_x: number; epv: boolean }

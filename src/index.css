@@ -144,7 +144,7 @@ tr.on { background: var(--accent-subtle); }
 .small { font-size: 12.5px; margin: 0; }
 .lab { display: grid; grid-template-columns: 290px minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
 @media (max-width: 1180px) { .lab { grid-template-columns: 260px minmax(0, 1fr); } .lab > .similar { grid-column: 1 / -1; position: static; } }
-@media (max-width: 760px) { .lab { grid-template-columns: minmax(0, 1fr); } .poss-list { max-height: 420px; } }
+
 
 .poss-list {
   position: sticky; top: 16px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 32px);
@@ -235,3 +235,26 @@ tr.on { background: var(--accent-subtle); }
 .screen { font: inherit; font-size: 13px; text-align: left; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-primary); cursor: pointer; }
 .screen:hover { background: var(--surface-hover, color-mix(in srgb, var(--text-primary) 6%, transparent)); }
 .screen.on { border-color: var(--accent); }
+
+/* ---------- phones: one column, replay first, nothing sticky ---------- */
+@media (max-width: 760px) {
+  .shell { padding-block: 20px 36px; gap: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .masthead { flex-direction: column; gap: 12px; }
+  .lab { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .lab > .player { order: -1; scroll-margin-top: 12px; }
+  .poss-list, .lab > .similar { position: static; max-height: none; }
+  .poss-list ul { max-height: 360px; }
+  .poss-head h2 { font-size: 20px; }
+  .court-wrap { display: flex; flex-direction: column; padding: 8px; }
+  .court-wrap .epv-now { position: static; order: -1; flex-direction: row; align-items: baseline; justify-content: flex-end; gap: 8px; margin: 0 4px 4px; }
+  .epv-now b { font-size: 22px; }
+  .pl-label { font-size: 1.75px; stroke-width: .55px; }
+  .court-key { gap: 10px; font-size: 12px; }
+  .controls { gap: 10px 12px; }
+  .controls input[type="range"] { flex: 1 1 0; min-width: 0; }
+  .time { min-width: 0; font-size: 12.5px; }
+  .screens { margin-top: 4px; }
+  .screen { font-size: 12.5px; width: 100%; }
+  .chart.epv { padding: 8px; }
+  .method { font-size: 13.5px; }
+}

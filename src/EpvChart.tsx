@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { scaleLinear } from 'd3-scale'
 import { line, curveMonotoneX } from 'd3-shape'
 import type { Possession } from './data'
@@ -33,7 +33,16 @@ interface Props { p: Possession; t: number; onSeek: (t: number) => void }
 
 export function EpvChart({ p, t, onSeek }: Props) {
   const { box, show, hide, node } = useTip()
-  const W = 720, H = 170, M = { l: 40, r: 14, t: 16, b: 26 }
+  // draw at the container's real width so text stays at its CSS size on phones
+  const [W, setW] = useState(720)
+  useEffect(() => {
+    const el = box.current
+    if (!el) return
+    const ro = new ResizeObserver(([e]) => setW(Math.max(260, Math.round(e.contentRect.width))))
+    ro.observe(el); return () => ro.disconnect()
+  }, [box])
+  const narrow = W < 520
+  const H = narrow ? 150 : 170, M = { l: 34, r: 10, t: 16, b: 26 }
   const n = p.f.length
   const x = scaleLinear().domain([0, n - 1]).range([M.l, W - M.r])
   const vals = p.e.filter((v): v is number => v != null)
@@ -57,7 +66,7 @@ export function EpvChart({ p, t, onSeek }: Props) {
             <text x={M.l - 8} y={y(v)} dy="0.35em" textAnchor="end" className="axis-label sm">{v.toFixed(1)}</text>
           </g>
         ))}
-        {Array.from({ length: Math.floor((n - 1) / FPS / 2) + 1 }, (_, k) => k * 2 * FPS).map(i => (
+        {Array.from({ length: Math.floor((n - 1) / FPS / (narrow ? 4 : 2)) + 1 }, (_, k) => k * (narrow ? 4 : 2) * FPS).map(i => (
           <text key={i} x={x(i)} y={H - 6} textAnchor="middle" className="axis-label sm">{i / FPS}s</text>
         ))}
         <rect x={M.l} y={M.t} width={W - M.l - M.r} height={H - M.t - M.b} fill="transparent" style={{ cursor: 'pointer' }}

@@ -50,7 +50,11 @@ export default function App() {
 
   function open(id: number, frame = 0, m = false, push = true) {
     if (push && cur) setBack(b => [...b.slice(-19), { id: cur.id, t: Math.round(t), m: mirrored }])
-    loadPossession(id).then(p => { setCur(p); setMirrored(m); setT(Math.max(0, Math.min(p.f.length - 1, frame))); setPlaying(frame > 0) }, e => setErr(String(e)))
+    loadPossession(id).then(p => {
+      setCur(p); setMirrored(m); setT(Math.max(0, Math.min(p.f.length - 1, frame))); setPlaying(frame > 0)
+      // single-column layout: the replay sits above the list, so bring it into view after a pick
+      if (push && matchMedia('(max-width: 760px)').matches) document.querySelector('.player')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, e => setErr(String(e)))
   }
 
   // playback

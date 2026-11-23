@@ -42,7 +42,7 @@ export function Court({ frame, trail, holder, names, mirrored, labels = true, ho
   const Y = (y: number) => sx(mirrored ? -y : y)
   const r = small ? 1.5 : 1.15
   return (
-    <svg viewBox={`-1 -1 ${COURT_W + 2} ${COURT_H + 2}`} className={small ? 'court court-sm' : 'court'} role="img"
+    <svg viewBox={small ? `-1 -1 ${COURT_W + 2} ${COURT_H + 2}` : `-3.5 -1.5 ${COURT_W + 7} ${COURT_H + 3}`} className={small ? 'court court-sm' : 'court'} role="img"
       aria-label="Half-court with player positions">
       <CourtLines hoopX={hoopX} />
       {trail && trail.length > 1 && Array.from({ length: 11 }, (_, p) => (

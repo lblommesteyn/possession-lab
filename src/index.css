@@ -251,7 +251,7 @@ tr.on { background: var(--accent-subtle); }
   .pl-label { font-size: 1.75px; stroke-width: .55px; }
   .court-key { gap: 10px; font-size: 12px; }
   .controls { gap: 10px 12px; }
-  .controls input[type="range"] { flex: 1 1 0; min-width: 0; }
+  .controls input[type="range"] { flex: 1 1 150px; min-width: 0; }
   .time { min-width: 0; font-size: 12.5px; }
   .screens { margin-top: 4px; }
   .screen { font-size: 12.5px; width: 100%; }

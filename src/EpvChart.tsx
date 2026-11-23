@@ -84,7 +84,7 @@ export function EpvChart({ p, t, onSeek }: Props) {
           const v = p.e[m.i]
           return v == null ? null : (
             <text key={`l${m.i}`} x={x(m.i)} y={y(v) + (m.d >= 0 ? -10 : 18)} textAnchor="middle" className="mk-label">
-              {m.d >= 0 ? '+' : ''}{m.d.toFixed(2)}
+              {(d => `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(2)}`)(Math.round(m.d * 100) / 100 || 0)}
             </text>
           )
         })}
